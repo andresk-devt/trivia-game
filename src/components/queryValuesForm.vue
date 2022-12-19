@@ -8,13 +8,13 @@
         <label class="label-content" for="username"
           >Username:</label
         >
-        <input class="input-content" id="username" placeholder="Enter your username"/>
+        <input v-model="username" class="input-content" id="username" placeholder="Enter your username"/>
       </div>
       <div class="form-content__item">
         <label class="label-content" for="categories"
           >Select the topic questions:</label
         >
-        <select class="input-content" id="categories">
+        <select v-model="selectedCategorie" class="input-content" id="categories">
           <option
             class="input-content__option"
             v-for="categorie in categories"
@@ -28,7 +28,7 @@
         <label class="label-content" for="difficulty"
           >Select the difficulty:</label
         >
-        <select class="input-content" id="difficulty">
+        <select v-model="queryValuesForm.difficulty" class="input-content" id="difficulty">
           <option
             class="input-content__option"
             v-for="item in difficulty"
@@ -38,7 +38,7 @@
           </option>
         </select>
       </div>
-      <button class="form-button" type="button">Play!</button>
+      <button @click="sendQueryValues()" class="form-button" type="button">Play!</button>
     </form>
   </div>
 </template>
@@ -52,11 +52,26 @@ export default {
     return {
       categories: [],
       difficulty: ["Easy", "Medium", "Hard"],
+      selectedCategorie: 'Arts & Literature',
+      username: null,
+      queryValuesForm: {
+        categorie: 'arts',
+        difficulty: 'Easy'
+      },
     };
   },
   async created() {
     await this.$store.dispatch("getCategoriesOptions");
     this.categories = Object.keys(this.options);
+  },
+  watch: {
+    'selectedCategorie': {
+      deep: true,
+      // immediate: true,
+      handler(data) {
+        this.queryValuesForm.categorie = this.options[data][0];
+      }
+    }
   },
   computed: {
     ...mapGetters({ options: "getCategories" }),
@@ -65,6 +80,10 @@ export default {
     closeModal() {
       this.$emit("handleShowModal", false);
     },
+    sendQueryValues() {
+      this.$store.commit('api/setQueryParams', this.queryValuesForm);
+      this.$store.dispatch('api/getQuestions');
+    }
   },
 };
 </script>
